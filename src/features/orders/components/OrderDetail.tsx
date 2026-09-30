@@ -8,22 +8,30 @@ import { formatDate } from "@/lib/utils/format";
 
 import { formatAddress, stateName } from "../../customers/format";
 import { OrderStatusBadge, PaymentBadge, paymentState } from "../status";
+import type { DocumentSend } from "../data";
 import type { Order } from "../types";
 import { DocumentActions } from "./DocumentActions";
 import { OrderActions } from "./OrderActions";
 import { OrderItemsTable } from "./OrderItemsTable";
+import { SendHistory } from "./SendHistory";
 import { TotalsSummary } from "./TotalsSummary";
 
 export function OrderDetail({
   order,
   can,
   businessName,
+  fileBusinessName,
   shareUrl,
+  sending,
+  sends,
 }: {
   order: Order;
   can: { edit: boolean; cancel: boolean; invoice: boolean };
   businessName: string;
+  fileBusinessName: string;
   shareUrl: string;
+  sending: { email: boolean; whatsapp: boolean } | null;
+  sends: DocumentSend[];
 }) {
   const payment = paymentState(order);
   const actions = (
@@ -51,6 +59,8 @@ export function OrderDetail({
         businessName={businessName}
         grandTotal={order.totals.grandTotal}
         shareUrl={shareUrl}
+        fileBusinessName={fileBusinessName}
+        sending={sending}
       />
     </>
   );
@@ -167,6 +177,8 @@ export function OrderDetail({
               </CardContent>
             </Card>
           )}
+
+          <SendHistory sends={sends} />
 
           <Card>
             <CardHeader title="History" />

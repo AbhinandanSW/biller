@@ -156,6 +156,75 @@ export type Database = {
           },
         ];
       };
+      document_sends: {
+        Row: {
+          channel: Database["public"]["Enums"]["send_channel"];
+          created_at: string;
+          document_number: string;
+          document_type: string;
+          error: string | null;
+          id: string;
+          message: string | null;
+          order_id: string;
+          organization_id: string;
+          provider_message_id: string | null;
+          recipient: string;
+          sent_by: string | null;
+          status: Database["public"]["Enums"]["send_status"];
+          subject: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          channel: Database["public"]["Enums"]["send_channel"];
+          created_at?: string;
+          document_number: string;
+          document_type: string;
+          error?: string | null;
+          id?: string;
+          message?: string | null;
+          order_id: string;
+          organization_id: string;
+          provider_message_id?: string | null;
+          recipient: string;
+          sent_by?: string | null;
+          status?: Database["public"]["Enums"]["send_status"];
+          subject?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          channel?: Database["public"]["Enums"]["send_channel"];
+          created_at?: string;
+          document_number?: string;
+          document_type?: string;
+          error?: string | null;
+          id?: string;
+          message?: string | null;
+          order_id?: string;
+          organization_id?: string;
+          provider_message_id?: string | null;
+          recipient?: string;
+          sent_by?: string | null;
+          status?: Database["public"]["Enums"]["send_status"];
+          subject?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "document_sends_organization_id_order_id_fkey";
+            columns: ["organization_id", "order_id"];
+            isOneToOne: false;
+            referencedRelation: "order_list";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "document_sends_organization_id_order_id_fkey";
+            columns: ["organization_id", "order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["organization_id", "id"];
+          },
+        ];
+      };
       document_sequences: {
         Row: {
           document_type: string;
@@ -1127,6 +1196,8 @@ export type Database = {
       invoice_status: "ISSUED" | "PAID" | "CANCELLED";
       order_status: "DRAFT" | "CONFIRMED" | "CANCELLED";
       record_status: "ACTIVE" | "ARCHIVED";
+      send_channel: "EMAIL" | "WHATSAPP";
+      send_status: "SENDING" | "SENT" | "FAILED";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1245,6 +1316,8 @@ export const Constants = {
       invoice_status: ["ISSUED", "PAID", "CANCELLED"],
       order_status: ["DRAFT", "CONFIRMED", "CANCELLED"],
       record_status: ["ACTIVE", "ARCHIVED"],
+      send_channel: ["EMAIL", "WHATSAPP"],
+      send_status: ["SENDING", "SENT", "FAILED"],
     },
   },
 } as const;

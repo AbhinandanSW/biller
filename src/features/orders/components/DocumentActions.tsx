@@ -11,7 +11,7 @@ import {
   Share2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSyncExternalStore, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 
 import {
   Button,
@@ -26,7 +26,8 @@ import {
 import { formatDate } from "@/lib/utils/format";
 
 import { ensureInvoice } from "../actions";
-import { shareMessage, whatsAppNumber } from "../share";
+import { documentFileName, shareMessage, whatsAppNumber, whatsAppTemplatePreview } from "../share";
+import { SendDialog, type SendDialogState } from "./SendDialog";
 
 export interface DocumentActionsProps {
   orderId: string;
@@ -40,6 +41,13 @@ export interface DocumentActionsProps {
   grandTotal: string;
   /** Public link to the PDF (no login needed). */
   shareUrl: string;
+  /** Business name used in PDF file names. */
+  fileBusinessName: string;
+  /**
+   * Which channels can send the PDF from the server. Null when this user can't
+   * send; those channels fall back to opening WhatsApp / the email app.
+   */
+  sending: { email: boolean; whatsapp: boolean } | null;
 }
 
 const canShareFiles = () =>
@@ -56,6 +64,7 @@ export function DocumentActions(props: DocumentActionsProps) {
   const { orderId, orderNumber, status, invoice, canIssueInvoice, customer, businessName } = props;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [dialog, setDialog] = useState<SendDialogState | null>(null);
   const nativeShare = useSyncExternalStore(
     () => () => {},
     canShareFiles,
@@ -135,6 +144,34 @@ export function DocumentActions(props: DocumentActionsProps) {
       window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
+  /** Opens the Send dialog for a server-side send with the PDF attached. */
+  const openSend = (channel: "EMAIL" | "WHATSAPP") =>
+    startTransition(async () => {
+      const doc = await getShared();
+      if (!doc) return;
+      const details = {
+        kind: shareKind,
+        number: doc.number,
+        customerName: customer.name,
+        businessName,
+        grandTotal: props.grandTotal,
+      };
+      const { subject, body } = shareMessage({
+        ...details,
+        dueDate: doc.dueDate ? formatDate(doc.dueDate) : null,
+      });
+      setDialog({
+        channel,
+        kind: shareKind,
+        documentNumber: doc.number,
+        fileName: documentFileName(props.fileBusinessName, doc.number),
+        to: channel === "EMAIL" ? (customer.email ?? "") : (customer.phone ?? ""),
+        subject,
+        message: body,
+        preview: channel === "WHATSAPP" ? whatsAppTemplatePreview(details) : undefined,
+      });
+    });
+
   const copyLink = () =>
     startTransition(async () => {
       if (!(await getShared())) return;
@@ -202,22 +239,48 @@ export function DocumentActions(props: DocumentActionsProps) {
             <DropdownMenuLabel className="text-caption text-muted-foreground">
               Send the {shareKind === "invoice" ? "invoice" : "order"} to {customer.name}
             </DropdownMenuLabel>
-            <DropdownMenuItem onSelect={whatsApp}>
-              <MessageCircle aria-hidden />
-              WhatsApp
-              {customer.phone && (
-                <span className="ml-auto text-caption text-muted-foreground">{customer.phone}</span>
-              )}
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={email}>
-              <Mail aria-hidden />
-              Email
-              {customer.email && (
-                <span className="ml-auto max-w-32 truncate text-caption text-muted-foreground">
-                  {customer.email}
+            {props.sending?.whatsapp ? (
+              <DropdownMenuItem onSelect={() => openSend("WHATSAPP")}>
+                <MessageCircle aria-hidden />
+                WhatsApp with PDF
+                {customer.phone && (
+                  <span className="ml-auto text-caption text-muted-foreground">
+                    {customer.phone}
+                  </span>
+                )}
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onSelect={whatsApp}>
+                <MessageCircle aria-hidden />
+                <span className="flex flex-col">
+                  WhatsApp
+                  <span className="text-caption text-muted-foreground">
+                    Opens WhatsApp with a link
+                  </span>
                 </span>
-              )}
-            </DropdownMenuItem>
+              </DropdownMenuItem>
+            )}
+            {props.sending?.email ? (
+              <DropdownMenuItem onSelect={() => openSend("EMAIL")}>
+                <Mail aria-hidden />
+                <span className="flex min-w-0 flex-col">
+                  Email with PDF attached
+                  {customer.email && (
+                    <span className="truncate text-caption text-muted-foreground">
+                      {customer.email}
+                    </span>
+                  )}
+                </span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onSelect={email}>
+                <Mail aria-hidden />
+                <span className="flex flex-col">
+                  Email
+                  <span className="text-caption text-muted-foreground">Opens your email app</span>
+                </span>
+              </DropdownMenuItem>
+            )}
             {nativeShare && (
               <DropdownMenuItem onSelect={shareFile}>
                 <Share2 aria-hidden />
@@ -232,6 +295,8 @@ export function DocumentActions(props: DocumentActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+
+      {dialog && <SendDialog orderId={orderId} state={dialog} onClose={() => setDialog(null)} />}
     </>
   );
 }

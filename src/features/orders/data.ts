@@ -362,3 +362,57 @@ export async function listTopCustomers(organizationId: string, limit = 5) {
     orderCount: row.order_count ?? 0,
   }));
 }
+
+export interface DocumentSend {
+  id: string;
+  channel: "EMAIL" | "WHATSAPP";
+  documentType: "INVOICE" | "ORDER";
+  documentNumber: string;
+  recipient: string;
+  status: "SENDING" | "SENT" | "FAILED";
+  error: string | null;
+  sentByName: string | null;
+  createdAt: string;
+}
+
+/** What was sent for an order, newest first. */
+export async function listDocumentSends(
+  organizationId: string,
+  orderId: string,
+): Promise<DocumentSend[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("document_sends")
+    .select(
+      "id, channel, document_type, document_number, recipient, status, error, sent_by, created_at",
+    )
+    .eq("organization_id", organizationId)
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+
+  const senderIds = [
+    ...new Set(data.map((row) => row.sent_by).filter((id): id is string => Boolean(id))),
+  ];
+  const names = new Map<string, string | null>();
+  if (senderIds.length) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .in("id", senderIds);
+    for (const p of profiles ?? []) names.set(p.id, p.full_name ?? p.email);
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    channel: row.channel,
+    documentType: row.document_type as DocumentSend["documentType"],
+    documentNumber: row.document_number,
+    recipient: row.recipient,
+    status: row.status,
+    error: row.error,
+    sentByName: row.sent_by ? (names.get(row.sent_by) ?? null) : null,
+    createdAt: row.created_at,
+  }));
+}

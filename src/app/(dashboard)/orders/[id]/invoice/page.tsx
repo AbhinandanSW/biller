@@ -6,6 +6,9 @@ import { getOrder } from "@/features/orders/data";
 import { toOrganizationSettings } from "@/features/organizations/settings";
 import { requireOrganization } from "@/lib/auth/session";
 import { getPublicEnv } from "@/lib/env";
+import { roleHasPermission as can } from "@/lib/auth/permissions";
+import { isEmailConfigured } from "@/lib/messaging/email";
+import { isWhatsAppConfigured } from "@/lib/messaging/whatsapp";
 import { isUuid } from "@/lib/utils/ids";
 
 export async function generateMetadata({
@@ -21,7 +24,7 @@ export async function generateMetadata({
 export default async function InvoicePage({ params }: PageProps<"/orders/[id]/invoice">) {
   const { id } = await params;
   if (!isUuid(id)) notFound();
-  const { organization } = await requireOrganization();
+  const { organization, role } = await requireOrganization();
   const order = await getOrder(organization.id, id);
   if (!order?.invoice) notFound();
 
@@ -30,6 +33,11 @@ export default async function InvoicePage({ params }: PageProps<"/orders/[id]/in
       order={order}
       org={toOrganizationSettings(organization)}
       shareUrl={`${getPublicEnv().NEXT_PUBLIC_APP_URL}/share/${order.shareToken}`}
+      sending={
+        can(role, "invoices.send")
+          ? { email: isEmailConfigured(), whatsapp: isWhatsAppConfigured() }
+          : null
+      }
     />
   );
 }

@@ -16,10 +16,12 @@ export function InvoiceView({
   order,
   org,
   shareUrl,
+  sending,
 }: {
   order: Order;
   org: OrganizationSettings;
   shareUrl: string;
+  sending: { email: boolean; whatsapp: boolean } | null;
 }) {
   const invoice = order.invoice!;
 
@@ -56,6 +58,8 @@ export function InvoiceView({
             businessName={org.legalName ?? org.name}
             grandTotal={order.totals.grandTotal}
             shareUrl={shareUrl}
+            fileBusinessName={org.name}
+            sending={sending}
           />
         </div>
       </div>

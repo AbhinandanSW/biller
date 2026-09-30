@@ -19,7 +19,19 @@ export interface ShareDetails {
   businessName: string;
   grandTotal: string;
   dueDate?: string | null;
-  link: string;
+  /** Omit when the PDF is attached (email) so the message doesn't need a link. */
+  link?: string;
+}
+
+/** File name for a document, e.g. ABC_Distributors_INV-2026-000001.pdf (spec §111). */
+export function documentFileName(businessName: string, documentNumber: string) {
+  const business = businessName.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  return `${business}_${documentNumber}.pdf`;
+}
+
+/** Text of the WhatsApp template (docs/whatsapp-template.md) as the customer sees it. */
+export function whatsAppTemplatePreview(d: Omit<ShareDetails, "link" | "dueDate">) {
+  return `Hello ${d.customerName}, please find your ${d.kind} ${d.number} for ${formatMoney(d.grandTotal)}. Thank you, ${d.businessName}.`;
 }
 
 /** Message template (spec §43, §90). */
@@ -33,8 +45,7 @@ export function shareMessage(d: ShareDetails): { subject: string; body: string }
         "",
         `Please find your invoice ${d.number} for ${amount}.`,
         d.dueDate ? `Payment is due by ${d.dueDate}.` : "",
-        "",
-        `View or download: ${d.link}`,
+        ...(d.link ? ["", `View or download: ${d.link}`] : ["", "The invoice is attached."]),
         "",
         "Thank you,",
         d.businessName,
@@ -49,8 +60,7 @@ export function shareMessage(d: ShareDetails): { subject: string; body: string }
       `Hello ${d.customerName},`,
       "",
       `Your order ${d.number} for ${amount} has been received.`,
-      "",
-      `View or download: ${d.link}`,
+      ...(d.link ? ["", `View or download: ${d.link}`] : ["", "The order is attached."]),
       "",
       "Thank you,",
       d.businessName,
