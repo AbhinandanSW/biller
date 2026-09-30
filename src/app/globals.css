@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Components use only these semantic colours (bg-surface,
+ * text-muted-foreground, border-border, bg-primary, …), never raw palette
+ * colours, so theming and dark mode are handled here in one place.
+ */
+:root {
+  --background: #f6f7f9;
+  --surface: #ffffff;
+  --surface-muted: #f1f2f5;
+  --border: #e3e5ea;
+  --border-strong: #cdd0d8;
+  --foreground: #15171b;
+  --muted-foreground: #5f636d;
+
+  --primary: #3355d6;
+  --primary-hover: #2a47b8;
+  --primary-foreground: #ffffff;
+  --primary-subtle: #edf1ff;
+
+  --success: #1b7f45;
+  --success-subtle: #e6f5ec;
+  --warning: #a35f00;
+  --warning-subtle: #fff3de;
+  --danger: #cc2f36;
+  --danger-hover: #b0262c;
+  --danger-foreground: #ffffff;
+  --danger-subtle: #fdebeb;
+
+  --ring: #3355d6;
+  --overlay: rgb(15 17 21 / 0.45);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0d0e11;
+    --surface: #15171b;
+    --surface-muted: #1c1f24;
+    --border: #2a2d34;
+    --border-strong: #3b3f48;
+    --foreground: #ebecef;
+    --muted-foreground: #9a9fa9;
+
+    --primary: #7090ff;
+    --primary-hover: #8ba5ff;
+    --primary-foreground: #0d0e11;
+    --primary-subtle: #1a2240;
+
+    --success: #45c27c;
+    --success-subtle: #10261a;
+    --warning: #e6a640;
+    --warning-subtle: #2a200f;
+    --danger: #f26a70;
+    --danger-hover: #f6878c;
+    --danger-foreground: #0d0e11;
+    --danger-subtle: #2c1416;
+
+    --ring: #7090ff;
+    --overlay: rgb(0 0 0 / 0.6);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --background: #0d0e11;
+  --surface: #15171b;
+  --surface-muted: #1c1f24;
+  --border: #2a2d34;
+  --border-strong: #3b3f48;
+  --foreground: #ebecef;
+  --muted-foreground: #9a9fa9;
+
+  --primary: #7090ff;
+  --primary-hover: #8ba5ff;
+  --primary-foreground: #0d0e11;
+  --primary-subtle: #1a2240;
+
+  --success: #45c27c;
+  --success-subtle: #10261a;
+  --warning: #e6a640;
+  --warning-subtle: #2a200f;
+  --danger: #f26a70;
+  --danger-hover: #f6878c;
+  --danger-foreground: #0d0e11;
+  --danger-subtle: #2c1416;
+
+  --ring: #7090ff;
+  --overlay: rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  /* Typography scale: text-display, text-heading, text-title, text-body, text-caption, text-label */
+  --text-display: 1.875rem;
+  --text-display--line-height: 2.375rem;
+  --text-display--font-weight: 600;
+  --text-display--letter-spacing: -0.02em;
+  --text-heading: 1.375rem;
+  --text-heading--line-height: 1.875rem;
+  --text-heading--font-weight: 600;
+  --text-heading--letter-spacing: -0.01em;
+  --text-title: 1rem;
+  --text-title--line-height: 1.5rem;
+  --text-title--font-weight: 600;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25rem;
+  --text-label--font-weight: 500;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --shadow-card: 0 1px 2px rgb(16 18 24 / 0.04), 0 1px 3px rgb(16 18 24 / 0.06);
+  --shadow-overlay: 0 12px 32px rgb(16 18 24 / 0.18), 0 2px 6px rgb(16 18 24 / 0.08);
+
+  --animate-fade-in: fade-in 150ms ease-out;
+  --animate-scale-in: scale-in 150ms ease-out;
+  --animate-slide-in-right: slide-in-right 200ms ease-out;
+  --animate-slide-in-left: slide-in-left 200ms ease-out;
+  --animate-slide-in-bottom: slide-in-bottom 200ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -48%) scale(0.97);
+    }
+  }
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes slide-in-bottom {
+    from {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background font-sans text-body text-foreground;
+  }
+
+  /* Money and quantities line up in columns. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
