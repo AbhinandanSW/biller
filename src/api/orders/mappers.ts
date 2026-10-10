@@ -31,6 +31,7 @@ export function toOrder(row: OrderDbRow): Order {
 
   const formItems: OrderItem[] = items.map((i) => ({
     id: i.id,
+    productId: i.product_id,
     name: i.name,
     hsnCode: i.hsn_code ?? "",
     quantity: plain(i.quantity),

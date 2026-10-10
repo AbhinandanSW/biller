@@ -102,6 +102,7 @@ export async function saveOrder(
     p_items: items.map((item) => {
       const line = lines.get(item.id)!;
       return {
+        product_id: item.productId,
         name: item.name.trim(),
         hsn_code: item.hsnCode.trim() || null,
         quantity: line.quantity,

@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireOrganization } from "@/api/auth/session";
 import { listCustomerOptions } from "@/api/customers/queries";
 import { getOrder, listKnownItems } from "@/api/orders/queries";
+import { listProductOptions } from "@/api/products/queries";
 import { OrderEditor } from "@/app/components/orders/OrderEditor";
 import { buttonClassName, Card, EmptyState } from "@/app/components/ui";
 import { isUuid } from "@/utils/ids";
@@ -44,9 +45,10 @@ export default async function EditOrderPage({
     );
   }
 
-  const [customers, knownItems] = await Promise.all([
+  const [customers, knownItems, products] = await Promise.all([
     listCustomerOptions(organization.id, order.customerId),
     listKnownItems(organization.id),
+    listProductOptions(organization.id),
   ]);
   // A customer just added from this screen comes back as ?customer=.
   const preselected = customers.find((c) => c.id === customerId)?.id ?? null;
@@ -56,6 +58,7 @@ export default async function EditOrderPage({
       existing={order}
       customers={customers}
       knownItems={knownItems}
+      products={products}
       preselectedCustomerId={preselected}
     />
   );

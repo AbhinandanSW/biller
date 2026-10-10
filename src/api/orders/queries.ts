@@ -102,7 +102,7 @@ export async function listKnownItems(organizationId: string): Promise<OrderItem[
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("order_items")
-    .select("id, name, hsn_code, unit, rate, tax_rate")
+    .select("id, product_id, name, hsn_code, unit, rate, tax_rate")
     .eq("organization_id", organizationId)
     .order("id", { ascending: false })
     .limit(KNOWN_ITEMS_LIMIT);
@@ -113,6 +113,7 @@ export async function listKnownItems(organizationId: string): Promise<OrderItem[
     if (!byName.has(key)) {
       byName.set(key, {
         id: i.id,
+        productId: i.product_id,
         name: i.name,
         hsnCode: i.hsn_code ?? "",
         quantity: "1",

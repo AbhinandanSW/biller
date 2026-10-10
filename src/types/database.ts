@@ -386,6 +386,7 @@ export type Database = {
           order_id: string;
           organization_id: string;
           position: number;
+          product_id: string | null;
           quantity: number;
           rate: number;
           sgst: number;
@@ -408,6 +409,7 @@ export type Database = {
           order_id: string;
           organization_id: string;
           position: number;
+          product_id?: string | null;
           quantity: number;
           rate: number;
           sgst: number;
@@ -430,6 +432,7 @@ export type Database = {
           order_id?: string;
           organization_id?: string;
           position?: number;
+          product_id?: string | null;
           quantity?: number;
           rate?: number;
           sgst?: number;
@@ -451,6 +454,13 @@ export type Database = {
             columns: ["organization_id", "order_id"];
             isOneToOne: false;
             referencedRelation: "orders";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "order_items_product_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
             referencedColumns: ["organization_id", "id"];
           },
         ];
@@ -774,6 +784,65 @@ export type Database = {
           website?: string | null;
         };
         Relationships: [];
+      };
+      products: {
+        Row: {
+          code: string | null;
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          hsn_code: string | null;
+          id: string;
+          image_path: string | null;
+          name: string;
+          organization_id: string;
+          price: number;
+          status: Database["public"]["Enums"]["record_status"];
+          tax_rate: number;
+          unit: string;
+          updated_at: string;
+        };
+        Insert: {
+          code?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          hsn_code?: string | null;
+          id?: string;
+          image_path?: string | null;
+          name: string;
+          organization_id: string;
+          price: number;
+          status?: Database["public"]["Enums"]["record_status"];
+          tax_rate: number;
+          unit?: string;
+          updated_at?: string;
+        };
+        Update: {
+          code?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          description?: string | null;
+          hsn_code?: string | null;
+          id?: string;
+          image_path?: string | null;
+          name?: string;
+          organization_id?: string;
+          price?: number;
+          status?: Database["public"]["Enums"]["record_status"];
+          tax_rate?: number;
+          unit?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "products_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {

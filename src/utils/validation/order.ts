@@ -12,6 +12,7 @@ export const OrderInputSchema = z.object({
     .array(
       z.object({
         id: text(64),
+        productId: z.uuid().nullable(),
         name: text(300),
         hsnCode: z
           .string()

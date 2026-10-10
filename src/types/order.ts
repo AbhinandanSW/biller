@@ -5,6 +5,8 @@ import type { Address } from "./customer";
 
 export interface OrderItem {
   id: string;
+  /** The catalogue product this row was picked from; null for a typed-in item. */
+  productId: string | null;
   name: string;
   hsnCode: string;
   quantity: string;

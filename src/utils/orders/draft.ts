@@ -7,7 +7,7 @@ import type {
 } from "@/types/order";
 import { calculateOrderTotals, CalculationError } from "@/utils/calculations";
 
-const NUMBER = /^d+(.d+)?$/;
+const NUMBER = /^\d+(\.\d+)?$/;
 
 /** "1,250.50 " → "1250.50": what users type, ready for the engine. */
 export function cleanNumber(value: string): string {

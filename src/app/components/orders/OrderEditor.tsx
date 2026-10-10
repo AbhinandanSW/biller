@@ -20,11 +20,14 @@ import { Alert, Badge, Button, buttonClassName, Combobox, toast } from "@/app/co
 import { useOrganization } from "@/app/hooks/useOrganization";
 import type { Customer } from "@/types/customer";
 import type { Order, OrderCharge, OrderItem } from "@/types/order";
+import type { ProductOption } from "@/types/product";
 import { formatAddress, stateName } from "@/utils/address";
 import { amountInWords } from "@/utils/amount-in-words";
 import { cn } from "@/utils/cn";
 import { formatMoney, formatPercent } from "@/utils/format";
 import { calculateDraft } from "@/utils/orders/draft";
+
+import { ItemNameInput, type ItemSuggestion } from "./ItemNameInput";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -32,6 +35,7 @@ import { calculateDraft } from "@/utils/orders/draft";
 
 const newItem = (taxRate: number): OrderItem => ({
   id: crypto.randomUUID(),
+  productId: null,
   name: "",
   hsnCode: "",
   quantity: "1",
@@ -107,6 +111,36 @@ function TotalRow({
   );
 }
 
+/** Catalogue products first, then names typed on earlier orders that aren't products. */
+function itemSuggestions(products: ProductOption[], knownItems: OrderItem[]): ItemSuggestion[] {
+  const fromProducts = products.map((p) => ({
+    key: `product:${p.id}`,
+    productId: p.id,
+    name: p.name,
+    code: p.code,
+    hsnCode: p.hsnCode ?? "",
+    unit: p.unit,
+    rate: p.price,
+    taxRate: p.taxRate,
+    imageUrl: p.imageUrl,
+  }));
+  const productNames = new Set(products.map((p) => p.name.trim().toLowerCase()));
+  const fromHistory = knownItems
+    .filter((i) => !productNames.has(i.name.trim().toLowerCase()))
+    .map((i) => ({
+      key: `recent:${i.id}`,
+      productId: null,
+      name: i.name,
+      code: null,
+      hsnCode: i.hsnCode,
+      unit: i.unit,
+      rate: i.rate,
+      taxRate: i.taxRate,
+      imageUrl: null,
+    }));
+  return [...fromProducts, ...fromHistory];
+}
+
 // ---------------------------------------------------------------------------
 // Editor
 // ---------------------------------------------------------------------------
@@ -120,11 +154,13 @@ export function OrderEditor({
   existing,
   customers,
   knownItems,
+  products,
   preselectedCustomerId,
 }: {
   existing?: Order;
   customers: Customer[];
   knownItems: OrderItem[];
+  products: ProductOption[];
   preselectedCustomerId?: string | null;
 }) {
   const org = useOrganization();
@@ -168,31 +204,46 @@ export function OrderEditor({
   const lineById = new Map(totals?.lines.map((l) => [l.productId, l]));
   const intra = totals ? totals.supplyType === "INTRA_STATE" : org.stateCode === placeOfSupply;
 
-  const knownByName = new Map(knownItems.map((item) => [item.name.trim().toLowerCase(), item]));
+  const suggestions = itemSuggestions(products, knownItems);
+  // First match wins, so a product beats an older typed item with the same name.
+  const suggestionByName = new Map<string, ItemSuggestion>();
+  for (const s of suggestions) {
+    const key = s.name.trim().toLowerCase();
+    if (!suggestionByName.has(key)) suggestionByName.set(key, s);
+  }
 
   // --- item editing ---------------------------------------------------------
+
+  /** Fills a row from a product or an earlier item; quantity and discount stay as typed. */
+  const fillFrom = (item: OrderItem, s: ItemSuggestion): OrderItem => ({
+    ...item,
+    productId: s.productId,
+    name: s.name,
+    hsnCode: s.hsnCode,
+    unit: s.unit,
+    rate: s.rate,
+    taxRate: s.taxRate,
+  });
 
   const updateItem = (id: string, column: Column, value: string) => {
     setItems((current) =>
       current.map((item) => {
         if (item.id !== id) return item;
-        const next = { ...item, [column]: value };
-        // Picking an item used before fills in its details if the row is otherwise empty.
-        const known = column === "name" ? knownByName.get(value.trim().toLowerCase()) : undefined;
-        if (known && !item.rate.trim()) {
-          return {
-            ...next,
-            name: known.name,
-            hsnCode: known.hsnCode,
-            unit: known.unit,
-            rate: known.rate,
-            taxRate: known.taxRate,
-          };
-        }
-        return next;
+        if (column !== "name") return { ...item, [column]: value };
+        // Typing an exact known name into an empty row fills in its details.
+        const known = suggestionByName.get(value.trim().toLowerCase());
+        if (known && !item.rate.trim()) return fillFrom(item, known);
+        // A renamed row is no longer the product it was picked from.
+        const stillProduct = item.productId && known?.productId === item.productId;
+        return { ...item, name: value, productId: stillProduct ? item.productId : null };
       }),
     );
   };
+
+  const pickItem = (id: string, suggestion: ItemSuggestion) =>
+    setItems((current) =>
+      current.map((item) => (item.id === id ? fillFrom(item, suggestion) : item)),
+    );
 
   // Cell to focus once the grid re-renders (e.g. a row that was just added).
   const pendingFocus = useRef<{ row: number; column: Column } | null>(null);
@@ -293,6 +344,21 @@ export function OrderEditor({
       aria-invalid={showErrors && calculation.itemErrors[item.id] ? true : undefined}
       {...props}
       className={cn(billInput, props.className)}
+    />
+  );
+  const nameCell = (item: OrderItem, row: number, className?: string) => (
+    <ItemNameInput
+      aria-label={`${COLUMN_LABELS.name}, row ${row + 1}`}
+      data-row={row}
+      data-col="name"
+      placeholder="Type an item or pick a product"
+      value={item.name}
+      onValueChange={(name) => updateItem(item.id, "name", name)}
+      onPick={(suggestion) => pickItem(item.id, suggestion)}
+      suggestions={suggestions}
+      onKeyDown={(e) => onCellKeyDown(e, row, "name")}
+      aria-invalid={showErrors && calculation.itemErrors[item.id] ? true : undefined}
+      className={cn(billInput, className)}
     />
   );
   const numeric = { inputMode: "decimal" as const, className: "text-right tabular" };
@@ -520,7 +586,7 @@ export function OrderEditor({
                     <tr key={item.id} className="border-b border-border align-top">
                       <td className="tabular px-2 py-2 text-muted-foreground">{row + 1}</td>
                       <td className="px-0.5 py-1">
-                        {cell(item, row, "name", { placeholder: "Item name", list: "known-items" })}
+                        {nameCell(item, row)}
                         {itemError(item)}
                       </td>
                       <td className="px-0.5 py-1">
@@ -590,13 +656,7 @@ export function OrderEditor({
                     <span className="tabular w-5 text-caption text-muted-foreground">
                       {row + 1}
                     </span>
-                    <div className="flex-1">
-                      {cell(item, row, "name", {
-                        placeholder: "Item name",
-                        list: "known-items",
-                        className: "border-border",
-                      })}
-                    </div>
+                    <div className="flex-1">{nameCell(item, row, "border-border")}</div>
                     {deleteButton(`Remove row ${row + 1}`, () => removeItem(item.id))}
                   </div>
                   {itemError(item)}
@@ -661,11 +721,6 @@ export function OrderEditor({
             <Plus className="size-3.5" aria-hidden />
             Add a charge (shipping, packing…)
           </button>
-          <datalist id="known-items">
-            {knownItems.map((item) => (
-              <option key={item.id} value={item.name} />
-            ))}
-          </datalist>
         </div>
 
         {/* Totals */}
