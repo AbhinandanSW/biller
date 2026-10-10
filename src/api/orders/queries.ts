@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { createAdminClient } from "@/api/supabase/admin";
 import { createClient } from "@/api/supabase/server";
 import { KNOWN_ITEMS_LIMIT, SEND_HISTORY_LIMIT } from "@/constants/orders";
@@ -10,7 +12,8 @@ import { containsPattern } from "@/utils/ids";
 
 import { ORDER_SELECT, plain, toOrder, toOrderRow, type OrderDbRow } from "./mappers";
 
-export async function getOrder(organizationId: string, id: string): Promise<Order | null> {
+/** Cached per request: the page and its generateMetadata share one query. */
+export const getOrder = cache(async (organizationId: string, id: string): Promise<Order | null> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
@@ -20,7 +23,7 @@ export async function getOrder(organizationId: string, id: string): Promise<Orde
     .maybeSingle();
   if (error) throw error;
   return data ? toOrder(data as unknown as OrderDbRow) : null;
-}
+});
 
 /**
  * An order and its business, looked up by share token for the public share

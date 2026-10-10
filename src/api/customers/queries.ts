@@ -104,14 +104,16 @@ export async function getCustomer(
   id: string,
 ): Promise<{ customer: Customer; stats: CustomerStats } | null> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("organization_id", organizationId)
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data, error }, stats] = await Promise.all([
+    supabase
+      .from("customers")
+      .select("*")
+      .eq("organization_id", organizationId)
+      .eq("id", id)
+      .maybeSingle(),
+    summariesFor(organizationId, [id]),
+  ]);
   if (error) throw error;
   if (!data) return null;
-  const stats = await summariesFor(organizationId, [id]);
   return { customer: toCustomer(data), stats: stats.get(id) ?? toCustomerStats(null) };
 }

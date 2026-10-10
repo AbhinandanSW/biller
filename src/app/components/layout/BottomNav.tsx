@@ -27,18 +27,28 @@ export function BottomNav() {
           const active = isActivePath(pathname, item.href);
           const content = (
             <>
-              <Icon className="size-5" aria-hidden />
+              <span
+                className={cn(
+                  "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+                  active && "bg-primary-subtle",
+                )}
+              >
+                <Icon className="size-5" aria-hidden />
+              </span>
               {item.shortLabel ?? item.label}
             </>
           );
-          const classes = "flex h-14 flex-col items-center justify-center gap-1 text-caption";
+          const classes = "flex h-14 flex-col items-center justify-center gap-0.5 text-caption";
 
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={cn(classes, active ? "text-primary" : "text-muted-foreground")}
+                className={cn(
+                  classes,
+                  active ? "font-medium text-primary" : "text-muted-foreground",
+                )}
               >
                 {content}
               </Link>

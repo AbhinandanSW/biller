@@ -10,15 +10,21 @@ import { LOGIN_PATH, ONBOARDING_PATH } from "@/constants/routes";
 import type { CurrentUser, Membership, OrganizationContext } from "@/types/auth";
 
 /**
- * The signed-in user, verified from the session JWT, or null. Cached per
- * request so layouts and pages can both call it.
+ * The verified session JWT's claims, or null when signed out. With asymmetric
+ * signing keys this is checked locally (no network call). Cached per request.
  */
-export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+const getClaims = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims;
-  if (!claims?.sub) return null;
+  return data?.claims?.sub ? data.claims : null;
+});
 
+/** The signed-in user, or null. Cached per request so layouts and pages can both call it. */
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  const claims = await getClaims();
+  if (!claims) return null;
+
+  const supabase = await createClient();
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
@@ -37,14 +43,15 @@ export async function requireUser(): Promise<CurrentUser> {
 
 /** Organizations the signed-in user belongs to, oldest first. */
 export const getMemberships = cache(async (): Promise<Membership[]> => {
-  const user = await getCurrentUser();
-  if (!user) return [];
+  // Only needs the user id, so it doesn't wait for the profile lookup.
+  const claims = await getClaims();
+  if (!claims) return [];
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organization_members")
     .select("role, organization:organizations(*)")
-    .eq("user_id", user.id)
+    .eq("user_id", claims.sub)
     .order("created_at");
   if (error) throw error;
 
@@ -59,8 +66,7 @@ export const getMemberships = cache(async (): Promise<Membership[]> => {
  * first. Redirects to login or onboarding when there isn't one.
  */
 export async function requireOrganization(): Promise<OrganizationContext> {
-  const user = await requireUser();
-  const memberships = await getMemberships();
+  const [user, memberships] = await Promise.all([requireUser(), getMemberships()]);
   if (memberships.length === 0) redirect(ONBOARDING_PATH);
 
   const activeId = (await cookies()).get(ACTIVE_ORGANIZATION_COOKIE)?.value;

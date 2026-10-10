@@ -37,18 +37,21 @@ export function DashboardView({
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <PageHeader
-        title={firstName ? `Welcome, ${firstName}` : "Dashboard"}
-        description="Here's how the business is doing"
-        actions={
-          canCreateOrder && (
-            <Link href="/orders/new" className={buttonClassName()}>
-              <Plus aria-hidden />
-              New order
-            </Link>
-          )
-        }
-      />
+      {/* Branded welcome strip: teal fading to saffron. */}
+      <section className="rounded-lg border border-border bg-linear-to-br from-primary-subtle via-surface to-accent-subtle p-5 shadow-card sm:p-6">
+        <PageHeader
+          title={firstName ? `Welcome, ${firstName}` : "Dashboard"}
+          description="Here's how the business is doing"
+          actions={
+            canCreateOrder && (
+              <Link href="/orders/new" className={buttonClassName()}>
+                <Plus aria-hidden />
+                New order
+              </Link>
+            )
+          }
+        />
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
@@ -56,20 +59,29 @@ export function DashboardView({
           value={formatMoney(stats.salesThisMonth)}
           hint="Invoiced this month"
           icon={<IndianRupee />}
+          tone="primary"
         />
         <StatCard
           label="Orders this month"
           value={stats.ordersThisMonth}
           hint={`${stats.draftCount} ${stats.draftCount === 1 ? "draft" : "drafts"} · ${stats.toInvoiceCount} to invoice`}
           icon={<ReceiptText />}
+          tone="accent"
         />
         <StatCard
           label="Outstanding"
           value={formatMoney(stats.outstanding)}
           hint={stats.overdueCount ? `${stats.overdueCount} overdue` : "Nothing overdue"}
           icon={<TriangleAlert />}
+          tone={stats.overdueCount ? "danger" : "warning"}
         />
-        <StatCard label="Customers" value={activeCustomers} hint="Active" icon={<Users />} />
+        <StatCard
+          label="Customers"
+          value={activeCustomers}
+          hint="Active"
+          icon={<Users />}
+          tone="success"
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">

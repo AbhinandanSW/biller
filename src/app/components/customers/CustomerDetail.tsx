@@ -1,4 +1,12 @@
-import { Pencil, Plus, ShoppingCart } from "lucide-react";
+import {
+  Clock,
+  IndianRupee,
+  Pencil,
+  Plus,
+  ReceiptText,
+  ShoppingCart,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Detail } from "@/app/components/common/Detail";
@@ -81,20 +89,26 @@ export function CustomerDetail({
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Orders" value={stats.orderCount} />
+        <StatCard label="Orders" value={stats.orderCount} icon={<ReceiptText />} tone="accent" />
         <StatCard
           label="Revenue"
           value={formatMoney(stats.revenue)}
           hint="Invoiced, excluding cancelled"
+          icon={<IndianRupee />}
+          tone="primary"
         />
         <StatCard
           label="Outstanding"
           value={formatMoney(stats.outstanding)}
           hint={stats.outstanding ? "Unpaid invoices" : "Nothing due"}
+          icon={<Clock />}
+          tone={stats.outstanding ? "warning" : "neutral"}
         />
         <StatCard
           label="Average order"
           value={formatMoney(stats.averageOrderValue)}
+          icon={<TrendingUp />}
+          tone="success"
           hint={
             stats.lastOrderDate ? `Last order ${formatDate(stats.lastOrderDate)}` : "No orders yet"
           }

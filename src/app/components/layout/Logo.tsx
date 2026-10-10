@@ -6,10 +6,16 @@ import { cn } from "@/utils/cn";
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2 text-title", className)}>
-      <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <ReceiptIndianRupee className="size-4" aria-hidden />
+      <span className="relative flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-card">
+        <ReceiptIndianRupee className="size-[1.125rem]" aria-hidden />
+        <span
+          className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-surface bg-accent"
+          aria-hidden
+        />
       </span>
-      Invoice SaaS
+      <span>
+        Invoice<span className="text-primary">SaaS</span>
+      </span>
     </span>
   );
 }

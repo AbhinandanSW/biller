@@ -46,7 +46,7 @@ export function ShellFrame({
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface px-3 sm:px-4 print:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-surface/85 px-3 backdrop-blur-md sm:px-4 print:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -65,7 +65,7 @@ export function ShellFrame({
       <div className="flex flex-1">
         <aside
           className={cn(
-            "sticky top-14 hidden h-[calc(100dvh-3.5rem)] shrink-0 overflow-y-auto border-r border-border bg-surface transition-[width] duration-200 lg:block print:hidden",
+            "sticky top-14 hidden h-[calc(100dvh-3.5rem)] shrink-0 overflow-y-auto border-r border-border bg-sidebar transition-[width] duration-200 lg:block print:hidden",
             collapsed ? "w-14 p-2" : "w-60 p-3",
           )}
         >

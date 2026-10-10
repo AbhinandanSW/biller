@@ -50,6 +50,8 @@ const COLORS = [
   "foreground",
   "muted-foreground",
   "primary",
+  "accent",
+  "sidebar",
   "success",
   "warning",
   "danger",

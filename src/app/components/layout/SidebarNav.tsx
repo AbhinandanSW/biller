@@ -37,12 +37,12 @@ export function SidebarNav({
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex h-8 items-center gap-2.5 rounded-md text-label transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
+                  "flex h-9 items-center gap-2.5 rounded-md text-label transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
                   "focus-visible:outline-2 focus-visible:outline-ring",
                   collapsed ? "justify-center px-0" : "px-2",
                   active
-                    ? "bg-primary-subtle text-primary"
-                    : "text-foreground hover:bg-surface-muted",
+                    ? "bg-primary text-primary-foreground shadow-card"
+                    : "text-muted-foreground hover:bg-surface hover:text-foreground",
                 )}
               >
                 <Icon aria-hidden />

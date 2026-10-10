@@ -5,6 +5,7 @@ import { BottomNav } from "./BottomNav";
 import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
 import { ShellFrame } from "./ShellFrame";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
 
 interface AppShellProps {
@@ -42,7 +43,12 @@ export function AppShell({
             </span>
           </>
         }
-        headerEnd={<UserMenu name={user.fullName} email={user.email} role={role} />}
+        headerEnd={
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <UserMenu name={user.fullName} email={user.email} role={role} />
+          </div>
+        }
       >
         {children}
       </ShellFrame>
