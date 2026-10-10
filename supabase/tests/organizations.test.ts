@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { PERMISSIONS, ROLE_PERMISSIONS, ROLES } from "@/lib/auth/permissions";
+import { PERMISSIONS, ROLE_PERMISSIONS, ROLES } from "@/constants/permissions";
 
 import { createTestDb, type Actor, type TestDb } from "./harness";
 

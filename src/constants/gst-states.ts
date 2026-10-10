@@ -41,13 +41,6 @@ export const GST_STATES = [
 
 export type GstStateCode = (typeof GST_STATES)[number]["code"];
 
-const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+export const GSTIN_PATTERN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
-export function isValidGstinFormat(gstin: string): boolean {
-  return GSTIN_PATTERN.test(gstin.trim().toUpperCase());
-}
-
-/** State code embedded in a GSTIN, or null if the GSTIN is malformed. */
-export function stateCodeFromGstin(gstin: string): string | null {
-  return isValidGstinFormat(gstin) ? gstin.trim().slice(0, 2) : null;
-}
+export const PINCODE_PATTERN = /^[1-9][0-9]{5}$/;
